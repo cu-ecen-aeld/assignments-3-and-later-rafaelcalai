@@ -45,13 +45,14 @@ if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
     make -j8 ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE all
 
     echo "## Compile modules"
-    make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE modules
+    make -j8 ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE modules
 
     echo "## Compile dts"
     make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE dtbs
 fi
-
 echo "Adding the Image in outdir"
+cp -r $OUTDIR/linux-stable/arch/$ARCH/boot/Image $OUTDIR
+
 
 echo "Creating the staging directory for the root filesystem"
 cd "$OUTDIR"
@@ -104,7 +105,7 @@ cp $TOOLCHAINLIB64/libresolv.so.2 $ROOTFSDIR/lib64
 cp $TOOLCHAINLIB64/libc.so.6 $ROOTFSDIR/lib64
 
 TOOLCHAINLIBC="/home/rcala/arm_toolchain/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib"
-cp $TOOLCHAINLIBC/ld-linux-aarch64.so.1 $ROOTFSDIR/lib64
+cp $TOOLCHAINLIBC/ld-linux-aarch64.so.1 $ROOTFSDIR/lib
 
 # TODO: Make device nodes
 echo "Make nodes"
@@ -120,13 +121,16 @@ make
 
 # TODO: Copy the finder related scripts and executables to the /home directory
 echo "Copy scripts to rootfs"
-cp -r finder.sh writer finder-test.sh conf autorun-qemu.sh "$ROOTFSDIR"/home/
+cp -r finder.sh writer finder-test.sh autorun-qemu.sh "$ROOTFSDIR"/home/
+cp -r conf "$ROOTFSDIR"/home/
 
 # on the target rootfs
 cd "$ROOTFSDIR"
 # TODO: Chown the root directory
-echo "hown the root directory"
-find . | cpio -H newc -ov --owner root:root > ../initramfs.cpio
+
+echo "Chown the root directory"
+sudo chown root:root "${OUTDIR}/rootfs"
+find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
 
 
 # TODO: Create initramfs.cpio.gz
