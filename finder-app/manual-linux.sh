@@ -13,6 +13,7 @@ FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
 
+
 if [ $# -lt 1 ]
 then
 	echo "Using default directory ${OUTDIR} for output"
@@ -99,12 +100,14 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # TODO: Add library dependencies to rootfs
 echo "Add dependencies"
-TOOLCHAINLIB64="/home/rcala/arm_toolchain/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64"
+
+AARCHTOOLCHAIN=$(aarch64-none-linux-gnu-gcc -print-sysroot)
+TOOLCHAINLIB64="$AARCHTOOLCHAIN/lib64"
 cp $TOOLCHAINLIB64/libm.so.6 $ROOTFSDIR/lib64
 cp $TOOLCHAINLIB64/libresolv.so.2 $ROOTFSDIR/lib64
 cp $TOOLCHAINLIB64/libc.so.6 $ROOTFSDIR/lib64
 
-TOOLCHAINLIBC="/home/rcala/arm_toolchain/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib"
+TOOLCHAINLIBC="$AARCHTOOLCHAIN/lib"
 cp $TOOLCHAINLIBC/ld-linux-aarch64.so.1 $ROOTFSDIR/lib
 
 # TODO: Make device nodes
