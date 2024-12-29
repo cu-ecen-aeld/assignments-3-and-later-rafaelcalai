@@ -117,12 +117,12 @@ sudo mknod -m 600 dev/console c 5 1
 echo "Compile writer"
 cd $FINDER_APP_DIR
 make clean
-make 
+make CROSS_COMPILE=$CROSS_COMPILE
 
 # TODO: Copy the finder related scripts and executables to the /home directory
 echo "Copy scripts to rootfs"
 cp -r finder.sh writer finder-test.sh autorun-qemu.sh "$ROOTFSDIR"/home/
-cp -r conf "$ROOTFSDIR"/home/
+cp -r conf/ "$ROOTFSDIR"/home/conf/
 
 # on the target rootfs
 cd "$ROOTFSDIR"
