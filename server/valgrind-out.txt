@@ -1,0 +1,357 @@
+==70066== Memcheck, a memory error detector
+==70066== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==70066== Using Valgrind-3.18.1-42b08ed5bd-20211015 and LibVEX; rerun with -h for copyright info
+==70066== Command: ./aesdsocket
+==70066== Parent PID: 70064
+==70066== 
+--70066-- 
+--70066-- Valgrind options:
+--70066--    --error-exitcode=1
+--70066--    --leak-check=full
+--70066--    --show-leak-kinds=all
+--70066--    --track-origins=yes
+--70066--    --errors-for-leak-kinds=definite
+--70066--    --verbose
+--70066--    --log-file=valgrind-out.txt
+--70066-- Contents of /proc/version:
+--70066--   Linux version 6.8.0-50-generic (buildd@lcy02-amd64-004) (x86_64-linux-gnu-gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #51~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Nov 21 12:03:03 UTC 2
+--70066-- 
+--70066-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand-rdseed
+--70066-- Page sizes: currently 4096, max supported 4096
+--70066-- Valgrind library directory: /usr/libexec/valgrind
+--70066-- Reading syms from /home/rcala/Documents/coursera/assignment-1-rafaelcalai/server/aesdsocket
+--70066-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+--70066--   Considering /usr/lib/debug/.build-id/41/86944c50f8a32b47d74931e3f512b811813b64.debug ..
+--70066--   .. build-id is valid
+--70066-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
+--70066--    object doesn't have a symbol table
+--70066--    object doesn't have a dynamic symbol table
+--70066-- Scheduler: using generic scheduler lock implementation.
+--70066-- Reading suppressions file: /usr/libexec/valgrind/default.supp
+==70066== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-70066-by-rcala-on-???
+==70066== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-70066-by-rcala-on-???
+==70066== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-70066-by-rcala-on-???
+==70066== 
+==70066== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==70066== don't want to do, unless you know exactly what you're doing,
+==70066== or are doing some strange experiment):
+==70066==   /usr/bin/vgdb --pid=70066 ...command...
+==70066== 
+==70066== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==70066==   /path/to/gdb ./aesdsocket
+==70066== and then give GDB the following command
+==70066==   target remote | /usr/bin/vgdb --pid=70066
+==70066== --pid is optional if only one valgrind process is running
+==70066== 
+--70066-- REDIR: 0x402aa40 (ld-linux-x86-64.so.2:strlen) redirected to 0x580bcec2 (???)
+--70066-- REDIR: 0x402a810 (ld-linux-x86-64.so.2:index) redirected to 0x580bcedc (???)
+--70066-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--70066--    object doesn't have a symbol table
+--70066-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+--70066--    object doesn't have a symbol table
+==70066== WARNING: new redirection conflicts with existing -- ignoring it
+--70066--     old: 0x0402aa40 (strlen              ) R-> (0000.0) 0x580bcec2 ???
+--70066--     new: 0x0402aa40 (strlen              ) R-> (2007.0) 0x0484ee30 strlen
+--70066-- REDIR: 0x4027220 (ld-linux-x86-64.so.2:strcmp) redirected to 0x484fcd0 (strcmp)
+--70066-- REDIR: 0x402afa0 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4853840 (mempcpy)
+--70066-- Reading syms from /usr/lib/x86_64-linux-gnu/libc.so.6
+--70066--   Considering /usr/lib/debug/.build-id/49/0fef8403240c91833978d494d39e537409b92e.debug ..
+--70066--   .. build-id is valid
+==70066== WARNING: new redirection conflicts with existing -- ignoring it
+--70066--     old: 0x04917c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--70066--     new: 0x04917c60 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
+==70066== WARNING: new redirection conflicts with existing -- ignoring it
+--70066--     old: 0x04917c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--70066--     new: 0x04917c60 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
+==70066== WARNING: new redirection conflicts with existing -- ignoring it
+--70066--     old: 0x04917c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--70066--     new: 0x04917c60 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
+==70066== WARNING: new redirection conflicts with existing -- ignoring it
+--70066--     old: 0x04917c60 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--70066--     new: 0x04917c60 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
+--70066-- REDIR: 0x491a720 (libc.so.6:strnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a9e0 (libc.so.6:strpbrk) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a2e0 (libc.so.6:strcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x4938cd0 (libc.so.6:wcsnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b6d0 (libc.so.6:memset) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x4937540 (libc.so.6:wcslen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491bc10 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x4937370 (libc.so.6:wcschr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a260 (libc.so.6:index) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a960 (libc.so.6:rindex) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b5a0 (libc.so.6:memmove) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+==70066== Preferring higher priority redirection:
+--70066--     old: 0x04a127c0 (__memcpy_avx_unalign) R-> (2018.0) 0x04850f90 __memcpy_avx_unaligned_erms
+--70066--     new: 0x04a127c0 (__memcpy_avx_unalign) R-> (2018.1) 0x04852880 memmove
+--70066-- REDIR: 0x49373f0 (libc.so.6:wcscmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b9e0 (libc.so.6:stpncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x49379b0 (libc.so.6:wmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a830 (libc.so.6:strncmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491ba70 (libc.so.6:strcasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a420 (libc.so.6:strcspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x4937470 (libc.so.6:wcscpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a1d0 (libc.so.6:strcat) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491bb60 (libc.so.6:strncasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b480 (libc.so.6:bcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x4923570 (libc.so.6:memrchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491d010 (libc.so.6:strchrnul) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a390 (libc.so.6:strcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491bb10 (libc.so.6:strcasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a6a0 (libc.so.6:strlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491a8d0 (libc.so.6:strncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b950 (libc.so.6:stpcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b3f0 (libc.so.6:memchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491ab00 (libc.so.6:strspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491b7d0 (libc.so.6:mempcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491bac0 (libc.so.6:strncasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x491cf80 (libc.so.6:rawmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--70066-- REDIR: 0x4a0f610 (libc.so.6:__strrchr_avx2) redirected to 0x484e810 (rindex)
+--70066-- REDIR: 0x49170a0 (libc.so.6:malloc) redirected to 0x4848820 (malloc)
+--70066-- REDIR: 0x4918520 (libc.so.6:calloc) redirected to 0x484d9d0 (calloc)
+--70066-- REDIR: 0x4a0f400 (libc.so.6:__strchrnul_avx2) redirected to 0x4853330 (strchrnul)
+--70066-- REDIR: 0x4a0f7e0 (libc.so.6:__strlen_avx2) redirected to 0x484ed10 (strlen)
+--70066-- REDIR: 0x49173e0 (libc.so.6:free) redirected to 0x484b210 (free)
+--70066-- REDIR: 0x4a127c0 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4852880 (memmove)
+--70066-- REDIR: 0x491afc0 (libc.so.6:__GI_strstr) redirected to 0x4853ae0 (__strstr_sse2)
+--70066-- REDIR: 0x4a0ba80 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x4852010 (bcmp)
+--70066-- REDIR: 0x4a0a940 (libc.so.6:__strcmp_avx2) redirected to 0x484fbd0 (strcmp)
+--70066-- REDIR: 0x4a12f80 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4852770 (memset)
+--70066-- REDIR: 0x4917740 (libc.so.6:realloc) redirected to 0x484dc50 (realloc)
+--70066-- REDIR: 0x4a0b2c0 (libc.so.6:__memchr_avx2) redirected to 0x484fd50 (memchr)
+--70066-- REDIR: 0x4a0d7b0 (libc.so.6:__strncasecmp_avx) redirected to 0x484f640 (strncasecmp)
+--70066-- REDIR: 0x4a0ad80 (libc.so.6:__strncmp_avx2) redirected to 0x484f3e0 (strncmp)
+--70066-- REDIR: 0x4a0a6e0 (libc.so.6:__strpbrk_sse42) redirected to 0x4853c00 (strpbrk)
+--70066-- REDIR: 0x4a0f180 (libc.so.6:__strchr_avx2) redirected to 0x484e9f0 (index)
+--70066-- REDIR: 0x4a12780 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4853440 (mempcpy)
+==70066== Conditional jump or move depends on uninitialised value(s)
+==70066==    at 0x484ED28: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48E8D30: __vfprintf_internal (vfprintf-internal.c:1517)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== Conditional jump or move depends on uninitialised value(s)
+==70066==    at 0x484ED28: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F1A18: fputs (iofputs.c:33)
+==70066==    by 0x109B44: write_file (aesdsocket.c:201)
+==70066==    by 0x109690: func (aesdsocket.c:62)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== Syscall param write(buf) points to uninitialised byte(s)
+==70066==    at 0x4986887: write (write.c:26)
+==70066==    by 0x48FCEEC: _IO_file_write@@GLIBC_2.2.5 (fileops.c:1180)
+==70066==    by 0x48FE9E0: new_do_write (fileops.c:448)
+==70066==    by 0x48FE9E0: _IO_new_do_write (fileops.c:425)
+==70066==    by 0x48FE9E0: _IO_do_write@@GLIBC_2.2.5 (fileops.c:422)
+==70066==    by 0x48FDFD7: _IO_file_close_it@@GLIBC_2.2.5 (fileops.c:135)
+==70066==    by 0x48F0D8E: fclose@@GLIBC_2.2.5 (iofclose.c:53)
+==70066==    by 0x109B50: write_file (aesdsocket.c:202)
+==70066==    by 0x109690: func (aesdsocket.c:62)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Address 0x4ac7460 is 1,024 bytes inside a block of size 4,096 alloc'd
+==70066==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F0BA3: _IO_file_doallocate (filedoalloc.c:101)
+==70066==    by 0x48FFCDF: _IO_doallocbuf (genops.c:347)
+==70066==    by 0x48FEF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48F1A9C: fputs (iofputs.c:38)
+==70066==    by 0x109B44: write_file (aesdsocket.c:201)
+==70066==    by 0x109690: func (aesdsocket.c:62)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== Syscall param write(buf) points to uninitialised byte(s)
+==70066==    at 0x4986887: write (write.c:26)
+==70066==    by 0x48FCEEC: _IO_file_write@@GLIBC_2.2.5 (fileops.c:1180)
+==70066==    by 0x48FE9E0: new_do_write (fileops.c:448)
+==70066==    by 0x48FE9E0: _IO_new_do_write (fileops.c:425)
+==70066==    by 0x48FE9E0: _IO_do_write@@GLIBC_2.2.5 (fileops.c:422)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48E900B: outstring_func (vfprintf-internal.c:239)
+==70066==    by 0x48E900B: __vfprintf_internal (vfprintf-internal.c:1517)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Address 0x4aaafd2 is 1,202 bytes inside a block of size 4,096 alloc'd
+==70066==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F0BA3: _IO_file_doallocate (filedoalloc.c:101)
+==70066==    by 0x48FFCDF: _IO_doallocbuf (genops.c:347)
+==70066==    by 0x48FEF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48E714C: outstring_func (vfprintf-internal.c:239)
+==70066==    by 0x48E714C: __vfprintf_internal (vfprintf-internal.c:1263)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== Syscall param write(buf) points to uninitialised byte(s)
+==70066==    at 0x4986887: write (write.c:26)
+==70066==    by 0x48FCEEC: _IO_file_write@@GLIBC_2.2.5 (fileops.c:1180)
+==70066==    by 0x48FE9E0: new_do_write (fileops.c:448)
+==70066==    by 0x48FE9E0: _IO_new_do_write (fileops.c:425)
+==70066==    by 0x48FE9E0: _IO_do_write@@GLIBC_2.2.5 (fileops.c:422)
+==70066==    by 0x49009C1: _IO_flush_all_lockp (genops.c:706)
+==70066==    by 0x4900B7D: _IO_cleanup (genops.c:866)
+==70066==    by 0x48B7541: __run_exit_handlers (exit.c:134)
+==70066==    by 0x48B760F: exit (exit.c:143)
+==70066==    by 0x109576: sig_handler (aesdsocket.c:36)
+==70066==    by 0x48B451F: ??? (in /usr/lib/x86_64-linux-gnu/libc.so.6)
+==70066==    by 0x4999424: accept (accept.c:26)
+==70066==    by 0x1099F2: main (aesdsocket.c:160)
+==70066==  Address 0x4aaacdc is 444 bytes inside a block of size 4,096 alloc'd
+==70066==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F0BA3: _IO_file_doallocate (filedoalloc.c:101)
+==70066==    by 0x48FFCDF: _IO_doallocbuf (genops.c:347)
+==70066==    by 0x48FEF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48E714C: outstring_func (vfprintf-internal.c:239)
+==70066==    by 0x48E714C: __vfprintf_internal (vfprintf-internal.c:1263)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== 
+==70066== HEAP SUMMARY:
+==70066==     in use at exit: 20,040 bytes in 1 blocks
+==70066==   total heap usage: 162 allocs, 161 frees, 483,863 bytes allocated
+==70066== 
+==70066== Searching for pointers to 1 not-freed blocks
+==70066== Checked 128,824 bytes
+==70066== 
+==70066== 20,040 bytes in 1 blocks are still reachable in loss record 1 of 1
+==70066==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x1095C6: func (aesdsocket.c:47)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066== 
+==70066== LEAK SUMMARY:
+==70066==    definitely lost: 0 bytes in 0 blocks
+==70066==    indirectly lost: 0 bytes in 0 blocks
+==70066==      possibly lost: 0 bytes in 0 blocks
+==70066==    still reachable: 20,040 bytes in 1 blocks
+==70066==         suppressed: 0 bytes in 0 blocks
+==70066== 
+==70066== ERROR SUMMARY: 186 errors from 5 contexts (suppressed: 0 from 0)
+==70066== 
+==70066== 1 errors in context 1 of 5:
+==70066== Syscall param write(buf) points to uninitialised byte(s)
+==70066==    at 0x4986887: write (write.c:26)
+==70066==    by 0x48FCEEC: _IO_file_write@@GLIBC_2.2.5 (fileops.c:1180)
+==70066==    by 0x48FE9E0: new_do_write (fileops.c:448)
+==70066==    by 0x48FE9E0: _IO_new_do_write (fileops.c:425)
+==70066==    by 0x48FE9E0: _IO_do_write@@GLIBC_2.2.5 (fileops.c:422)
+==70066==    by 0x49009C1: _IO_flush_all_lockp (genops.c:706)
+==70066==    by 0x4900B7D: _IO_cleanup (genops.c:866)
+==70066==    by 0x48B7541: __run_exit_handlers (exit.c:134)
+==70066==    by 0x48B760F: exit (exit.c:143)
+==70066==    by 0x109576: sig_handler (aesdsocket.c:36)
+==70066==    by 0x48B451F: ??? (in /usr/lib/x86_64-linux-gnu/libc.so.6)
+==70066==    by 0x4999424: accept (accept.c:26)
+==70066==    by 0x1099F2: main (aesdsocket.c:160)
+==70066==  Address 0x4aaacdc is 444 bytes inside a block of size 4,096 alloc'd
+==70066==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F0BA3: _IO_file_doallocate (filedoalloc.c:101)
+==70066==    by 0x48FFCDF: _IO_doallocbuf (genops.c:347)
+==70066==    by 0x48FEF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48E714C: outstring_func (vfprintf-internal.c:239)
+==70066==    by 0x48E714C: __vfprintf_internal (vfprintf-internal.c:1263)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== 
+==70066== 5 errors in context 2 of 5:
+==70066== Syscall param write(buf) points to uninitialised byte(s)
+==70066==    at 0x4986887: write (write.c:26)
+==70066==    by 0x48FCEEC: _IO_file_write@@GLIBC_2.2.5 (fileops.c:1180)
+==70066==    by 0x48FE9E0: new_do_write (fileops.c:448)
+==70066==    by 0x48FE9E0: _IO_new_do_write (fileops.c:425)
+==70066==    by 0x48FE9E0: _IO_do_write@@GLIBC_2.2.5 (fileops.c:422)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48E900B: outstring_func (vfprintf-internal.c:239)
+==70066==    by 0x48E900B: __vfprintf_internal (vfprintf-internal.c:1517)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Address 0x4aaafd2 is 1,202 bytes inside a block of size 4,096 alloc'd
+==70066==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F0BA3: _IO_file_doallocate (filedoalloc.c:101)
+==70066==    by 0x48FFCDF: _IO_doallocbuf (genops.c:347)
+==70066==    by 0x48FEF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48E714C: outstring_func (vfprintf-internal.c:239)
+==70066==    by 0x48E714C: __vfprintf_internal (vfprintf-internal.c:1263)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== 
+==70066== 20 errors in context 3 of 5:
+==70066== Syscall param write(buf) points to uninitialised byte(s)
+==70066==    at 0x4986887: write (write.c:26)
+==70066==    by 0x48FCEEC: _IO_file_write@@GLIBC_2.2.5 (fileops.c:1180)
+==70066==    by 0x48FE9E0: new_do_write (fileops.c:448)
+==70066==    by 0x48FE9E0: _IO_new_do_write (fileops.c:425)
+==70066==    by 0x48FE9E0: _IO_do_write@@GLIBC_2.2.5 (fileops.c:422)
+==70066==    by 0x48FDFD7: _IO_file_close_it@@GLIBC_2.2.5 (fileops.c:135)
+==70066==    by 0x48F0D8E: fclose@@GLIBC_2.2.5 (iofclose.c:53)
+==70066==    by 0x109B50: write_file (aesdsocket.c:202)
+==70066==    by 0x109690: func (aesdsocket.c:62)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Address 0x4ac7460 is 1,024 bytes inside a block of size 4,096 alloc'd
+==70066==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F0BA3: _IO_file_doallocate (filedoalloc.c:101)
+==70066==    by 0x48FFCDF: _IO_doallocbuf (genops.c:347)
+==70066==    by 0x48FEF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==70066==    by 0x48FD6D4: _IO_new_file_xsputn (fileops.c:1243)
+==70066==    by 0x48FD6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==70066==    by 0x48F1A9C: fputs (iofputs.c:38)
+==70066==    by 0x109B44: write_file (aesdsocket.c:201)
+==70066==    by 0x109690: func (aesdsocket.c:62)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== 
+==70066== 80 errors in context 4 of 5:
+==70066== Conditional jump or move depends on uninitialised value(s)
+==70066==    at 0x484ED28: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48F1A18: fputs (iofputs.c:33)
+==70066==    by 0x109B44: write_file (aesdsocket.c:201)
+==70066==    by 0x109690: func (aesdsocket.c:62)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== 
+==70066== 80 errors in context 5 of 5:
+==70066== Conditional jump or move depends on uninitialised value(s)
+==70066==    at 0x484ED28: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==70066==    by 0x48E8D30: __vfprintf_internal (vfprintf-internal.c:1517)
+==70066==    by 0x48D279E: printf (printf.c:33)
+==70066==    by 0x109681: func (aesdsocket.c:61)
+==70066==    by 0x109A72: main (aesdsocket.c:173)
+==70066==  Uninitialised value was created by a stack allocation
+==70066==    at 0x109577: func (aesdsocket.c:40)
+==70066== 
+==70066== ERROR SUMMARY: 186 errors from 5 contexts (suppressed: 0 from 0)
