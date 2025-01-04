@@ -23,6 +23,8 @@ char *dynamic_buffer = NULL;
 size_t dynamic_size = 0;
 int sockfd, connfd;
 struct sockaddr_in servaddr, cli;
+char client_ip[INET_ADDRSTRLEN];
+char buff[MAX] = {0};
 
 void open_syslog(void);
 void close_syslog(void);
@@ -32,13 +34,13 @@ void sig_handler(int signo)
 {
     syslog(LOG_INFO, "Caught signal, exiting\n");
     remove(LOG_FILE);
+    free(dynamic_buffer);
     close(sockfd);
     exit(0);
 }
 
 void func(int connfd)
 {
-    char buff[MAX];
     ssize_t bytes_received;
 
     while ((bytes_received = recv(connfd, buff, MAX, 0)) > 0)
@@ -154,7 +156,6 @@ int main(int argc, char *argv[])
         start_daemon();
     }
 
-    struct hostent *hostp;
     while (1)
     {
         socklen_t client_addrlen = sizeof(cli);
@@ -167,16 +168,16 @@ int main(int argc, char *argv[])
         }
         else
         {
-            hostp = gethostbyaddr((const char *)&cli.sin_addr.s_addr,
-                                  sizeof(cli.sin_addr.s_addr), AF_INET);
-            syslog(LOG_INFO, "Accepted connection from %s\n", hostp->h_name);
+            inet_ntop(AF_INET, &cli.sin_addr, client_ip, INET_ADDRSTRLEN);
+            printf("Client connected: %s:%d\n", client_ip, ntohs(cli.sin_port));                      
+            syslog(LOG_INFO, "Accepted connection from %s\n", client_ip);
         }
 
         func(connfd);
-        syslog(LOG_INFO, "Closed connection from %s\n", hostp->h_name);
+        close(connfd);
+        syslog(LOG_INFO, "Closed connection from %s\n", client_ip);
     }
     remove(LOG_FILE);
-    close(sockfd);
 }
 
 void open_syslog()
