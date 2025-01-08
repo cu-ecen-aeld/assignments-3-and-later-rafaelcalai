@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/fs.h>
+#include <pthread.h>
+#include <time.h>
 
 #define MAX 1024
 #define PORT 9000
@@ -25,14 +27,19 @@ int sockfd, connfd;
 struct sockaddr_in servaddr, cli;
 char client_ip[INET_ADDRSTRLEN];
 char buff[MAX] = {0};
+pthread_mutex_t syslog_lock; 
+pthread_mutex_t file_lock; 
+
 
 void open_syslog(void);
+void write_syslog(int priority, const char *msg);
 void close_syslog(void);
 void write_file(const char *write_string);
+void* write_timestamp(void* arg);
 
 void sig_handler(int signo)
 {
-    syslog(LOG_INFO, "Caught signal, exiting\n");
+    write_syslog(LOG_INFO, "Caught signal, exiting\n");
     remove(LOG_FILE);
     free(dynamic_buffer);
     close(sockfd);
@@ -60,7 +67,6 @@ void func(int connfd)
         dynamic_size += bytes_received;
         dynamic_buffer[dynamic_size] = '\0'; // Null-terminate the string
 
-        printf("Received: %s\n", buff);
         write_file(buff);
         for (int i = 0; i < bytes_received; i++)
         {
@@ -78,7 +84,7 @@ void func(int connfd)
     }
     else
     {
-        printf("Client disconnected\n");
+        write_syslog(LOG_DEBUG, "Client disconnected");
     }
 }
 
@@ -110,23 +116,35 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "-d") == 0)
         {
-            syslog(LOG_INFO, "received arg: %s and will run as deamon", argv[1]);
+            write_syslog(LOG_INFO, "received arg: -d and will run as deamon");
             is_deamon = true;
         }
     }
+
+    if (pthread_mutex_init(&syslog_lock, NULL) != 0) { 
+        write_syslog(LOG_ERR, "syslog_lock mutex init has failed\n"); 
+        return 1; 
+    } 
+    if (pthread_mutex_init(&file_lock, NULL) != 0) { 
+        write_syslog(LOG_ERR, "file_lock mutex init has failed\n"); 
+        return 1; 
+    }
+
+    
     if (signal(SIGINT, sig_handler) == SIG_ERR)
     {
-        printf("\ncan't catch SIGINT\n");
+        write_syslog(LOG_ERR,"can't catch SIGINT\n");
     }
     if (signal(SIGTERM, sig_handler) == SIG_ERR)
     {
-        printf("\ncan't catch SIGTERM\n");
+        write_syslog(LOG_ERR,"can't catch SIGTERM\n");
     }
+
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
-        syslog(LOG_ERR, "socket creation failed...\n");
+        write_syslog(LOG_ERR, "socket creation failed...\n");
         exit(-1);
     }
 
@@ -140,14 +158,14 @@ int main(int argc, char *argv[])
     // Binding newly created socket to given IP and verification
     if ((bind(sockfd, (SA *)&servaddr, sizeof(servaddr))) != 0)
     {
-        syslog(LOG_ERR, "socket bind failed...\n");
+        write_syslog(LOG_ERR, "socket bind failed...\n");
         exit(-1);
     }
 
     // Now server is ready to listen and verification
     if ((listen(sockfd, 5)) != 0)
     {
-        syslog(LOG_ERR, "Listen failed...\n");
+        write_syslog(LOG_ERR, "Listen failed...\n");
         exit(-1);
     }
 
@@ -156,6 +174,10 @@ int main(int argc, char *argv[])
         start_daemon();
     }
 
+
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, write_timestamp, NULL);
+
     while (1)
     {
         socklen_t client_addrlen = sizeof(cli);
@@ -163,27 +185,32 @@ int main(int argc, char *argv[])
         connfd = accept(sockfd, (SA *)&cli, &client_addrlen);
         if (connfd < 0)
         {
-            syslog(LOG_ERR, "server accept failed...\n");
+            write_syslog(LOG_ERR, "server accept failed...\n");
             exit(-1);
         }
         else
         {
             inet_ntop(AF_INET, &cli.sin_addr, client_ip, INET_ADDRSTRLEN);
-            printf("Client connected: %s:%d\n", client_ip, ntohs(cli.sin_port));                      
-            syslog(LOG_INFO, "Accepted connection from %s\n", client_ip);
+            char s[100] = "";
+            sprintf(s,"Accepted connection from %s\n", client_ip);                   
+            write_syslog(LOG_INFO, s);
         }
 
         func(connfd);
         close(connfd);
-        syslog(LOG_INFO, "Closed connection from %s\n", client_ip);
+        char s[100] = "";
+        sprintf(s, "Closed connection from %s\n", client_ip);
+        write_syslog(LOG_INFO, s);
     }
     remove(LOG_FILE);
+    pthread_mutex_destroy(&syslog_lock);
+    pthread_mutex_destroy(&file_lock);
 }
 
 void open_syslog()
 {
     openlog(NULL, 0, LOG_USER);
-    syslog(LOG_DEBUG, "Logging initialized.");
+    write_syslog(LOG_DEBUG, "Logging initialized.");
 }
 
 void close_syslog()
@@ -194,13 +221,46 @@ void close_syslog()
 void write_file(const char *write_string)
 {
     FILE *fptr;
-
+    pthread_mutex_lock(&file_lock); 
     fptr = fopen(LOG_FILE, "a");
     if (fptr == NULL)
     {
-        syslog(LOG_ERR, "Not able to open the file.\n");
+        write_syslog(LOG_ERR, "Not able to open the file.\n");
         return;
     }
     fprintf(fptr, "%s", write_string);
     fclose(fptr);
+    pthread_mutex_unlock(&file_lock); 
 }
+
+void write_syslog(int priority, const char *msg){
+    pthread_mutex_lock(&syslog_lock); 
+    syslog(priority, "%s", msg);
+    pthread_mutex_unlock(&syslog_lock); 
+}
+
+void* write_timestamp(void* arg) 
+{ 
+    char outstr[200];
+    time_t t;
+    struct tm *tmp;
+
+    for(int i = 0;i<10;i++){
+        t = time(NULL);
+        tmp = localtime(&t);
+        if (tmp == NULL) {
+            write_syslog(LOG_ERR,"localtime");
+            exit(EXIT_FAILURE);
+        }
+
+        if (strftime(outstr, sizeof(outstr), "timestamp:%a, %d %b %Y %T", tmp) == 0) {
+            write_syslog(LOG_ERR, "strftime returned 0");
+            exit(EXIT_FAILURE);
+        }
+        write_syslog(LOG_ERR, outstr);
+        sleep(10);
+    }
+    
+    
+    return NULL; 
+} 
