@@ -27,6 +27,7 @@ int sockfd, connfd;
 struct sockaddr_in servaddr, cli;
 char client_ip[INET_ADDRSTRLEN];
 char buff[MAX] = {0};
+
 pthread_mutex_t syslog_lock; 
 pthread_mutex_t file_lock; 
 
@@ -36,77 +37,11 @@ void write_syslog(int priority, const char *msg);
 void close_syslog(void);
 void write_file(const char *write_string);
 void* write_timestamp(void* arg);
+void sig_handler(int signo);
+void func(int connfd);
+void start_daemon(void);
 
-void sig_handler(int signo)
-{
-    write_syslog(LOG_INFO, "Caught signal, exiting\n");
-    remove(LOG_FILE);
-    free(dynamic_buffer);
-    close(sockfd);
-    exit(0);
-}
 
-void func(int connfd)
-{
-    ssize_t bytes_received;
-
-    while ((bytes_received = recv(connfd, buff, MAX, 0)) > 0)
-    {
-        // Allocate or expand dynamic buffer
-        char *temp = realloc(dynamic_buffer, dynamic_size + bytes_received + 1);
-        if (!temp)
-        {
-            perror("Realloc failed");
-            free(dynamic_buffer);
-            exit(-1);
-        }
-        dynamic_buffer = temp;
-
-        // Append received data to dynamic buffer
-        memcpy(dynamic_buffer + dynamic_size, buff, bytes_received);
-        dynamic_size += bytes_received;
-        dynamic_buffer[dynamic_size] = '\0'; // Null-terminate the string
-
-        write_file(buff);
-        for (int i = 0; i < bytes_received; i++)
-        {
-            if (buff[i] == '\n')
-            {
-                write(connfd, dynamic_buffer, dynamic_size);
-                break;
-            }
-        }
-    }
-
-    if (bytes_received < 0)
-    {
-        perror("Recv failed");
-    }
-    else
-    {
-        write_syslog(LOG_DEBUG, "Client disconnected");
-    }
-}
-
-void start_daemon(void)
-{
-    pid_t pid = fork();
-    if (pid == -1)
-        exit(-1);
-    else if (pid != 0)
-        exit(EXIT_SUCCESS);
-    /* create new session and process group */
-    if (setsid() == -1)
-        exit(-1);
-    /* set the working directory to the root directory */
-    if (chdir("/") == -1)
-        exit(-1);
-
-    /* redirect fd's 0,1,2 to /dev/null */
-    open("/dev/null", O_RDWR); /* stdin */
-    dup(0);                    /* stdout */
-    dup(0);
-}
 // Driver function
 int main(int argc, char *argv[])
 {
@@ -205,6 +140,78 @@ int main(int argc, char *argv[])
     remove(LOG_FILE);
     pthread_mutex_destroy(&syslog_lock);
     pthread_mutex_destroy(&file_lock);
+}
+
+
+void sig_handler(int signo)
+{
+    write_syslog(LOG_INFO, "Caught signal, exiting\n");
+    remove(LOG_FILE);
+    free(dynamic_buffer);
+    close(sockfd);
+    exit(0);
+}
+
+void func(int connfd)
+{
+    ssize_t bytes_received;
+
+    while ((bytes_received = recv(connfd, buff, MAX, 0)) > 0)
+    {
+        // Allocate or expand dynamic buffer
+        char *temp = realloc(dynamic_buffer, dynamic_size + bytes_received + 1);
+        if (!temp)
+        {
+            perror("Realloc failed");
+            free(dynamic_buffer);
+            exit(-1);
+        }
+        dynamic_buffer = temp;
+
+        // Append received data to dynamic buffer
+        memcpy(dynamic_buffer + dynamic_size, buff, bytes_received);
+        dynamic_size += bytes_received;
+        dynamic_buffer[dynamic_size] = '\0'; // Null-terminate the string
+
+        write_file(buff);
+        for (int i = 0; i < bytes_received; i++)
+        {
+            if (buff[i] == '\n')
+            {
+                write(connfd, dynamic_buffer, dynamic_size);
+                break;
+            }
+        }
+    }
+
+    if (bytes_received < 0)
+    {
+        perror("Recv failed");
+    }
+    else
+    {
+        write_syslog(LOG_DEBUG, "Client disconnected");
+    }
+}
+
+void start_daemon(void)
+{
+    pid_t pid = fork();
+    if (pid == -1)
+        exit(-1);
+    else if (pid != 0)
+        exit(EXIT_SUCCESS);
+    /* create new session and process group */
+    if (setsid() == -1)
+        exit(-1);
+    /* set the working directory to the root directory */
+    if (chdir("/") == -1)
+        exit(-1);
+
+    /* redirect fd's 0,1,2 to /dev/null */
+    open("/dev/null", O_RDWR); /* stdin */
+    dup(0);                    /* stdout */
+    dup(0);
 }
 
 void open_syslog()
