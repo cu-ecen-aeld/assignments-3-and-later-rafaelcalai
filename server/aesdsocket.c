@@ -16,6 +16,9 @@
 #include <pthread.h>
 #include <time.h>
 
+
+#include "queue.h"
+
 #define MAX 1024
 #define PORT 9000
 #define SA struct sockaddr
@@ -31,6 +34,12 @@ char buff[MAX] = {0};
 pthread_mutex_t syslog_lock; 
 pthread_mutex_t file_lock; 
 
+typedef struct slist_data_s slist_data_t;
+struct slist_data_s {
+    bool is_completed;
+    pthread_t thread;
+    SLIST_ENTRY(slist_data_s) entries;
+};
 
 void open_syslog(void);
 void write_syslog(int priority, const char *msg);
@@ -38,7 +47,7 @@ void close_syslog(void);
 void write_file(const char *write_string);
 void* write_timestamp(void* arg);
 void sig_handler(int signo);
-void func(int connfd);
+void* func(void* arg);
 void start_daemon(void);
 
 
@@ -113,6 +122,11 @@ int main(int argc, char *argv[])
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, write_timestamp, NULL);
 
+    slist_data_t *datap=NULL;
+
+    SLIST_HEAD(slisthead, slist_data_s) head;
+    SLIST_INIT(&head);
+
     while (1)
     {
         socklen_t client_addrlen = sizeof(cli);
@@ -129,9 +143,13 @@ int main(int argc, char *argv[])
             char s[100] = "";
             sprintf(s,"Accepted connection from %s\n", client_ip);                   
             write_syslog(LOG_INFO, s);
+            
+            datap = malloc(sizeof(slist_data_t));
+            pthread_create(&datap->thread, NULL, func, &connfd);
+
+
         }
 
-        func(connfd);
         close(connfd);
         char s[100] = "";
         sprintf(s, "Closed connection from %s\n", client_ip);
@@ -152,8 +170,9 @@ void sig_handler(int signo)
     exit(0);
 }
 
-void func(int connfd)
+void* func(void* arg)
 {
+    int connfd = *(int *)arg;
     ssize_t bytes_received;
 
     while ((bytes_received = recv(connfd, buff, MAX, 0)) > 0)
@@ -192,6 +211,7 @@ void func(int connfd)
     {
         write_syslog(LOG_DEBUG, "Client disconnected");
     }
+    return NULL;
 }
 
 void start_daemon(void)
