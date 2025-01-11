@@ -16,8 +16,8 @@
 #include <pthread.h>
 #include <time.h>
 
-
 #include "queue.h"
+
 
 #define MAX 1024
 #define PORT 9000
@@ -28,8 +28,7 @@ char *dynamic_buffer = NULL;
 size_t dynamic_size = 0;
 int sockfd, connfd;
 struct sockaddr_in servaddr, cli;
-char client_ip[INET_ADDRSTRLEN];
-char buff[MAX] = {0};
+
 
 pthread_mutex_t syslog_lock; 
 pthread_mutex_t file_lock; 
@@ -37,7 +36,9 @@ pthread_mutex_t file_lock;
 typedef struct slist_data_s slist_data_t;
 struct slist_data_s {
     bool is_completed;
+    int connfd;
     pthread_t thread;
+    char client_ip[INET_ADDRSTRLEN];
     SLIST_ENTRY(slist_data_s) entries;
 };
 
@@ -123,6 +124,7 @@ int main(int argc, char *argv[])
     pthread_create(&thread_id, NULL, write_timestamp, NULL);
 
     slist_data_t *datap=NULL;
+    slist_data_t *tdatap=NULL;
 
     SLIST_HEAD(slisthead, slist_data_s) head;
     SLIST_INIT(&head);
@@ -130,30 +132,37 @@ int main(int argc, char *argv[])
     while (1)
     {
         socklen_t client_addrlen = sizeof(cli);
+        datap = calloc(1, sizeof(slist_data_t));
         // Accept the data packet from client and verification
-        connfd = accept(sockfd, (SA *)&cli, &client_addrlen);
+        datap->connfd = accept(sockfd, (SA *)&cli, &client_addrlen);
         if (connfd < 0)
         {
             write_syslog(LOG_ERR, "server accept failed...\n");
+            free(datap);
             exit(-1);
         }
         else
         {
-            inet_ntop(AF_INET, &cli.sin_addr, client_ip, INET_ADDRSTRLEN);
+            datap->is_completed = false;
+            inet_ntop(AF_INET, &cli.sin_addr, datap->client_ip, INET_ADDRSTRLEN);
             char s[100] = "";
-            sprintf(s,"Accepted connection from %s\n", client_ip);                   
+            sprintf(s,"Accepted connection from %s\n", datap->client_ip);                   
             write_syslog(LOG_INFO, s);
             
-            datap = malloc(sizeof(slist_data_t));
-            pthread_create(&datap->thread, NULL, func, &connfd);
-
-
+            pthread_create(&datap->thread, NULL, func, datap);
         }
 
-        close(connfd);
-        char s[100] = "";
-        sprintf(s, "Closed connection from %s\n", client_ip);
-        write_syslog(LOG_INFO, s);
+        slist_data_t *elem=NULL;
+        SLIST_FOREACH_SAFE(elem, &head, entries, tdatap)
+        {
+            if (elem->is_completed == true)
+            {
+                close(elem->connfd);
+                pthread_join(elem->thread, NULL);
+                SLIST_REMOVE(&head, elem, slist_data_s , entries);
+                free(elem);
+            }       
+        }
     }
     remove(LOG_FILE);
     pthread_mutex_destroy(&syslog_lock);
@@ -172,10 +181,11 @@ void sig_handler(int signo)
 
 void* func(void* arg)
 {
-    int connfd = *(int *)arg;
+    slist_data_t* datap = (slist_data_t*) arg;
     ssize_t bytes_received;
+    char *buff = (char* )calloc(MAX, sizeof(char));
 
-    while ((bytes_received = recv(connfd, buff, MAX, 0)) > 0)
+    while ((bytes_received = recv(datap->connfd, buff, MAX, 0)) > 0)
     {
         // Allocate or expand dynamic buffer
         char *temp = realloc(dynamic_buffer, dynamic_size + bytes_received + 1);
@@ -192,12 +202,13 @@ void* func(void* arg)
         dynamic_size += bytes_received;
         dynamic_buffer[dynamic_size] = '\0'; // Null-terminate the string
 
-        write_file(buff);
+        
         for (int i = 0; i < bytes_received; i++)
         {
             if (buff[i] == '\n')
             {
-                write(connfd, dynamic_buffer, dynamic_size);
+                write_file(buff);
+                write(datap->connfd, dynamic_buffer, dynamic_size);
                 break;
             }
         }
@@ -210,7 +221,11 @@ void* func(void* arg)
     else
     {
         write_syslog(LOG_DEBUG, "Client disconnected");
+        char s[100] = "";
+        sprintf(s, "Closed connection from %s\n", datap->client_ip);
+        write_syslog(LOG_INFO, s);
     }
+    datap->is_completed = true;
     return NULL;
 }
 
@@ -280,11 +295,11 @@ void* write_timestamp(void* arg)
             exit(EXIT_FAILURE);
         }
 
-        if (strftime(outstr, sizeof(outstr), "timestamp:%a, %d %b %Y %T", tmp) == 0) {
+        if (strftime(outstr, sizeof(outstr), "timestamp: %a, %d %b %Y %T\n", tmp) == 0) {
             write_syslog(LOG_ERR, "strftime returned 0");
             exit(EXIT_FAILURE);
         }
-        write_syslog(LOG_ERR, outstr);
+        write_file(outstr);
         sleep(10);
     }
     

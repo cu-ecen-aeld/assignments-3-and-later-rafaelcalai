@@ -11,6 +11,7 @@
 
   # the build target executable:
   TARGET = aesdsocket
+  LIBS = -lm
 
   # Default target
   .PHONY: all
@@ -21,9 +22,10 @@
   default: $(TARGET)
 
   $(TARGET): $(TARGET).c
-	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
+	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c $(LIBS)
 
   # Clean target
   .PHONY: clean
   clean:
 	$(RM) $(TARGET)
+
