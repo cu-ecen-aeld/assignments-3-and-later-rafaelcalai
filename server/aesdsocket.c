@@ -15,9 +15,7 @@
 #include <linux/fs.h>
 #include <pthread.h>
 #include <time.h>
-
 #include "queue.h"
-
 
 #define MAX 1024
 #define PORT 9000
@@ -26,7 +24,7 @@
 
 char *dynamic_buffer = NULL;
 size_t dynamic_size = 0;
-int sockfd, connfd;
+int sockfd;
 struct sockaddr_in servaddr, cli;
 
 
@@ -35,12 +33,14 @@ pthread_mutex_t file_lock;
 
 typedef struct slist_data_s slist_data_t;
 struct slist_data_s {
+    pthread_t thread;
     bool is_completed;
     int connfd;
-    pthread_t thread;
     char client_ip[INET_ADDRSTRLEN];
     SLIST_ENTRY(slist_data_s) entries;
 };
+SLIST_HEAD(slisthead, slist_data_s) head;
+slist_data_t *tdatap=NULL;
 
 void open_syslog(void);
 void write_syslog(int priority, const char *msg);
@@ -50,6 +50,7 @@ void* write_timestamp(void* arg);
 void sig_handler(int signo);
 void* func(void* arg);
 void start_daemon(void);
+void deallocate_likedlist(void);
 
 
 // Driver function
@@ -119,14 +120,10 @@ int main(int argc, char *argv[])
         start_daemon();
     }
 
-
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, write_timestamp, NULL);
 
     slist_data_t *datap=NULL;
-    slist_data_t *tdatap=NULL;
-
-    SLIST_HEAD(slisthead, slist_data_s) head;
     SLIST_INIT(&head);
 
     while (1)
@@ -135,7 +132,7 @@ int main(int argc, char *argv[])
         datap = calloc(1, sizeof(slist_data_t));
         // Accept the data packet from client and verification
         datap->connfd = accept(sockfd, (SA *)&cli, &client_addrlen);
-        if (connfd < 0)
+        if (datap->connfd < 0)
         {
             write_syslog(LOG_ERR, "server accept failed...\n");
             free(datap);
@@ -145,37 +142,47 @@ int main(int argc, char *argv[])
         {
             datap->is_completed = false;
             inet_ntop(AF_INET, &cli.sin_addr, datap->client_ip, INET_ADDRSTRLEN);
-            char s[100] = "";
+            char s[100] = {0};
             sprintf(s,"Accepted connection from %s\n", datap->client_ip);                   
             write_syslog(LOG_INFO, s);
-            
             pthread_create(&datap->thread, NULL, func, datap);
         }
-
-        slist_data_t *elem=NULL;
+        slist_data_t *elem=calloc(1, sizeof(slist_data_t));
         SLIST_FOREACH_SAFE(elem, &head, entries, tdatap)
         {
-            if (elem->is_completed == true)
+            if (elem->is_completed == true) 
             {
                 close(elem->connfd);
                 pthread_join(elem->thread, NULL);
                 SLIST_REMOVE(&head, elem, slist_data_s , entries);
-                free(elem);
             }       
         }
+        free(elem);
     }
-    remove(LOG_FILE);
-    pthread_mutex_destroy(&syslog_lock);
-    pthread_mutex_destroy(&file_lock);
 }
 
+void deallocate_likedlist(void){
+    slist_data_t *elem=calloc(1, sizeof(slist_data_t));
+    SLIST_FOREACH_SAFE(elem, &head, entries, tdatap)
+    {
+        close(elem->connfd);
+        pthread_join(elem->thread, NULL);
+        SLIST_REMOVE(&head, elem, slist_data_s , entries);
+    }
+    free(elem);
+}
+        
 
 void sig_handler(int signo)
 {
     write_syslog(LOG_INFO, "Caught signal, exiting\n");
+    deallocate_likedlist();
     remove(LOG_FILE);
     free(dynamic_buffer);
     close(sockfd);
+    remove(LOG_FILE);
+    pthread_mutex_destroy(&syslog_lock);
+    pthread_mutex_destroy(&file_lock);
     exit(0);
 }
 
@@ -183,32 +190,38 @@ void* func(void* arg)
 {
     slist_data_t* datap = (slist_data_t*) arg;
     ssize_t bytes_received;
-    char *buff = (char* )calloc(MAX, sizeof(char));
+    
+    // Ensure buff is properly initialized to zero
+    char* buff = (char* )calloc(MAX, sizeof(char));
+    if (buff == NULL) {
+        datap->is_completed = true;
+        perror("calloc failed for buff");
+        return NULL;
+    }
 
     while ((bytes_received = recv(datap->connfd, buff, MAX, 0)) > 0)
     {
-        // Allocate or expand dynamic buffer
-        char *temp = realloc(dynamic_buffer, dynamic_size + bytes_received + 1);
-        if (!temp)
+        // Ensure dynamic_buffer is initialized or expanded properly
+        dynamic_buffer = realloc(dynamic_buffer, dynamic_size + bytes_received + 1);
+        if (!dynamic_buffer)
         {
             perror("Realloc failed");
-            free(dynamic_buffer);
+            free(dynamic_buffer);  // Ensure memory is freed if realloc fails
             exit(-1);
         }
-        dynamic_buffer = temp;
 
-        // Append received data to dynamic buffer
+        // Copy received data to dynamic buffer
         memcpy(dynamic_buffer + dynamic_size, buff, bytes_received);
         dynamic_size += bytes_received;
-        dynamic_buffer[dynamic_size] = '\0'; // Null-terminate the string
+        dynamic_buffer[dynamic_size] = '\0';  // Null-terminate
 
-        
+        // Process and check for newline
         for (int i = 0; i < bytes_received; i++)
         {
             if (buff[i] == '\n')
             {
-                write_file(buff);
-                write(datap->connfd, dynamic_buffer, dynamic_size);
+                write_file(buff);  // Write data to file
+                write(datap->connfd, dynamic_buffer, dynamic_size);  // Send data back
                 break;
             }
         }
@@ -221,13 +234,46 @@ void* func(void* arg)
     else
     {
         write_syslog(LOG_DEBUG, "Client disconnected");
-        char s[100] = "";
+        char s[100] = {0};
         sprintf(s, "Closed connection from %s\n", datap->client_ip);
         write_syslog(LOG_INFO, s);
     }
+
     datap->is_completed = true;
+    free(buff);  // Free allocated memory for buff
     return NULL;
 }
+
+void write_file(const char *write_string)
+{
+    FILE *fptr;
+    pthread_mutex_lock(&file_lock);
+
+    // Ensure the write string is properly null-terminated and valid
+    if (write_string == NULL) {
+        write_syslog(LOG_ERR, "Attempt to write null string to file.\n");
+        pthread_mutex_unlock(&file_lock);
+        return;
+    }
+
+    fptr = fopen(LOG_FILE, "a");
+    if (fptr == NULL)
+    {
+        write_syslog(LOG_ERR, "Not able to open the file.\n");
+        pthread_mutex_unlock(&file_lock);
+        return;
+    }
+    
+    // Ensure write_string is initialized properly
+    if (fputs(write_string, fptr) == EOF) {
+        write_syslog(LOG_ERR, "Error writing to file.\n");
+    }
+
+    fclose(fptr);
+    pthread_mutex_unlock(&file_lock);
+}
+
+
 
 void start_daemon(void)
 {
@@ -260,20 +306,7 @@ void close_syslog()
     closelog();
 }
 
-void write_file(const char *write_string)
-{
-    FILE *fptr;
-    pthread_mutex_lock(&file_lock); 
-    fptr = fopen(LOG_FILE, "a");
-    if (fptr == NULL)
-    {
-        write_syslog(LOG_ERR, "Not able to open the file.\n");
-        return;
-    }
-    fprintf(fptr, "%s", write_string);
-    fclose(fptr);
-    pthread_mutex_unlock(&file_lock); 
-}
+
 
 void write_syslog(int priority, const char *msg){
     pthread_mutex_lock(&syslog_lock); 
@@ -283,7 +316,7 @@ void write_syslog(int priority, const char *msg){
 
 void* write_timestamp(void* arg) 
 { 
-    char outstr[200];
+    char outstr[200] = {0};
     time_t t;
     struct tm *tmp;
 
@@ -302,7 +335,5 @@ void* write_timestamp(void* arg)
         write_file(outstr);
         sleep(10);
     }
-    
-    
     return NULL; 
 } 

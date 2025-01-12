@@ -7,11 +7,11 @@
   # compiler flags:
   #  -g    adds debugging information to the executable file
   #  -Wall turns on most, but not all, compiler warnings
-  CFLAGS  = -g -Wall
+  CFLAGS  = -g -Wall -pthread
 
   # the build target executable:
   TARGET = aesdsocket
-  LIBS = -lm
+  LIBS = -lm 
 
   # Default target
   .PHONY: all
