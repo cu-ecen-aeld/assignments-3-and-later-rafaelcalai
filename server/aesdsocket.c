@@ -221,7 +221,59 @@ void* func(void* arg)
             if (buff[i] == '\n')
             {
                 write_file(buff);  // Write data to file
-                write(datap->connfd, dynamic_buffer, dynamic_size);  // Send data back
+
+                int filefd;
+                char *buffer;
+                size_t buffer_size;
+                struct stat file_stat;
+                pthread_mutex_lock(&file_lock);
+                filefd = open(LOG_FILE, O_RDONLY);
+                if (filefd == -1) {
+                    perror("Error opening file");
+                    pthread_mutex_unlock(&file_lock);
+                    return;
+                }
+
+                // Get the file size
+                if (fstat(filefd, &file_stat) == -1) {
+                    perror("Error getting file size");
+                    close(filefd);
+                    pthread_mutex_unlock(&file_lock);
+                    return;
+                }
+                buffer_size = file_stat.st_size;
+
+                // Allocate memory for the buffer
+                buffer = (char *)malloc(buffer_size);
+                if (buffer == NULL) {
+                    perror("Error allocating memory");
+                    close(filefd);
+                    pthread_mutex_unlock(&file_lock);
+                    return;
+                }
+
+                // Read the file content into the buffer
+                ssize_t bytes_read = read(filefd, buffer, buffer_size);
+                if (bytes_read == -1) {
+                    perror("Error reading file");
+                    free(buffer);
+                    close(filefd);
+                    pthread_mutex_unlock(&file_lock);
+                    return;
+                }
+
+                // Send the file content to the client
+                ssize_t bytes_written = write(datap->connfd, buffer, bytes_read);
+                if (bytes_written == -1) {
+                    perror("Error writing to client");
+                } else if (bytes_written < bytes_read) {
+                    fprintf(stderr, "Warning: Partial write occurred\n");
+                }
+
+                // Cleanup
+                free(buffer);
+                close(filefd);
+                pthread_mutex_unlock(&file_lock);
                 break;
             }
         }
@@ -268,9 +320,13 @@ void write_file(const char *write_string)
     if (fputs(write_string, fptr) == EOF) {
         write_syslog(LOG_ERR, "Error writing to file.\n");
     }
-
+    // Force the file to be written to disk
+    if (fsync(fptr) == -1) {
+        perror("Error forcing file to disk");
+    }
     fclose(fptr);
     pthread_mutex_unlock(&file_lock);
+    
 }
 
 
