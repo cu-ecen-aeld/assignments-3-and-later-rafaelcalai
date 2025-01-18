@@ -1,29 +1,38 @@
+# Compiler and tools (defaults for standalone builds, overridden by Yocto)
+CC ?= gcc
+AR ?= ar
+STRIP ?= strip
 
-  CROSS_COMPILE ?= 
-  CC ?= $(CROSS_COMPILE)gcc
+# Compiler flags
+CFLAGS ?= -Wall -Werror -g
+LDFLAGS ?= -pthread -lrt -lm
 
-  # compiler flags:
-  #  -g    adds debugging information to the executable file
-  #  -Wall turns on most, but not all, compiler warnings
-  CFLAGS  ?= -g -Wall -pthread
+# Target binary name
+TARGET = aesdsocket
 
-  # the build target executable:
-  TARGET ?= aesdsocket
-  LIBS ?= -lm 
+# Source and object files
+SRCS = aesdsocket.c
+OBJS = $(SRCS:.c=.o)
 
-  # Default target
-  .PHONY: all
-  all: $(TARGET)
+# Default target
+.PHONY: all
+all: $(TARGET)
 
-    # Default target
-  .PHONY: default
-  default: $(TARGET)
+# Build the target binary
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
 
-  $(TARGET): $(TARGET).c
-	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c $(LIBS)
+# Compile source files into object files
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-  # Clean target
-  .PHONY: clean
-  clean:
-	$(RM) $(TARGET)
+# Clean build artifacts
+.PHONY: clean
+clean:
+	rm -f $(OBJS) $(TARGET)
 
+# Install target (for use with Yocto's do_install)
+.PHONY: install
+install:
+	install -d $(DESTDIR)/usr/bin
+	install -m 0755 $(TARGET) $(DESTDIR)/usr/bin/
